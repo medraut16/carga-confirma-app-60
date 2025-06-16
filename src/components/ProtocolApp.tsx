@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Package, FileText, BarChart3, Plus, Settings, User, Truck, DollarSign, Calendar } from 'lucide-react';
+import { Package, FileText, BarChart3, Plus, Settings, User, Truck, DollarSign, Calendar, Menu } from 'lucide-react';
 import { DeliveryProtocol, Product, Driver, Vehicle, Expense, ExpenseCategory } from '@/types/protocol';
 import ProtocolForm from './ProtocolForm';
 import ProtocolList from './ProtocolList';
@@ -29,6 +29,7 @@ const ProtocolApp = () => {
   const [showForm, setShowForm] = useState(false);
   const [editingProtocol, setEditingProtocol] = useState<DeliveryProtocol | null>(null);
   const [confirmingDelivery, setConfirmingDelivery] = useState<DeliveryProtocol | null>(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     // Load all data from localStorage
@@ -197,101 +198,101 @@ const ProtocolApp = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <div className="container mx-auto p-6">
+      <div className="container mx-auto p-2 sm:p-4 lg:p-6">
         {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-800 mb-2">
+        <div className="text-center mb-4 sm:mb-6 lg:mb-8">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-800 mb-2">
             Sistema de Gestão de Entregas
           </h1>
-          <p className="text-gray-600">
+          <p className="text-sm sm:text-base text-gray-600">
             Dashboard completo para controle de entregas e finanças
           </p>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4 mb-8">
+        {/* Stats Cards - Mobile: 2 columns, Tablet: 3-4, Desktop: 7 */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-2 sm:gap-3 lg:gap-4 mb-4 sm:mb-6 lg:mb-8">
           <Card className="bg-white shadow-lg hover:shadow-xl transition-shadow">
-            <CardContent className="p-4">
+            <CardContent className="p-2 sm:p-3 lg:p-4">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs font-medium text-gray-600">Entregas</p>
-                  <p className="text-2xl font-bold text-blue-600">{stats.total}</p>
+                  <p className="text-lg sm:text-xl lg:text-2xl font-bold text-blue-600">{stats.total}</p>
                 </div>
-                <Package className="h-6 w-6 text-blue-600" />
+                <Package className="h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 text-blue-600" />
               </div>
             </CardContent>
           </Card>
           
           <Card className="bg-white shadow-lg hover:shadow-xl transition-shadow">
-            <CardContent className="p-4">
+            <CardContent className="p-2 sm:p-3 lg:p-4">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs font-medium text-gray-600">Entregues</p>
-                  <p className="text-2xl font-bold text-green-600">{stats.delivered}</p>
+                  <p className="text-lg sm:text-xl lg:text-2xl font-bold text-green-600">{stats.delivered}</p>
                 </div>
-                <div className="h-6 w-6 bg-green-100 rounded-full flex items-center justify-center">
-                  <div className="h-3 w-3 bg-green-600 rounded-full"></div>
+                <div className="h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 bg-green-100 rounded-full flex items-center justify-center">
+                  <div className="h-2 w-2 sm:h-2.5 sm:w-2.5 lg:h-3 lg:w-3 bg-green-600 rounded-full"></div>
                 </div>
               </div>
             </CardContent>
           </Card>
           
           <Card className="bg-white shadow-lg hover:shadow-xl transition-shadow">
-            <CardContent className="p-4">
+            <CardContent className="p-2 sm:p-3 lg:p-4">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs font-medium text-gray-600">Pendentes</p>
-                  <p className="text-2xl font-bold text-yellow-600">{stats.pending}</p>
+                  <p className="text-lg sm:text-xl lg:text-2xl font-bold text-yellow-600">{stats.pending}</p>
                 </div>
-                <div className="h-6 w-6 bg-yellow-100 rounded-full flex items-center justify-center">
-                  <div className="h-3 w-3 bg-yellow-600 rounded-full"></div>
+                <div className="h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 bg-yellow-100 rounded-full flex items-center justify-center">
+                  <div className="h-2 w-2 sm:h-2.5 sm:w-2.5 lg:h-3 lg:w-3 bg-yellow-600 rounded-full"></div>
                 </div>
               </div>
             </CardContent>
           </Card>
           
           <Card className="bg-white shadow-lg hover:shadow-xl transition-shadow">
-            <CardContent className="p-4">
+            <CardContent className="p-2 sm:p-3 lg:p-4">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs font-medium text-gray-600">Produtos</p>
-                  <p className="text-2xl font-bold text-purple-600">{stats.totalProducts}</p>
+                  <p className="text-lg sm:text-xl lg:text-2xl font-bold text-purple-600">{stats.totalProducts}</p>
                 </div>
-                <Settings className="h-6 w-6 text-purple-600" />
+                <Settings className="h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 text-purple-600" />
               </div>
             </CardContent>
           </Card>
 
           <Card className="bg-white shadow-lg hover:shadow-xl transition-shadow">
-            <CardContent className="p-4">
+            <CardContent className="p-2 sm:p-3 lg:p-4">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs font-medium text-gray-600">Motoristas</p>
-                  <p className="text-2xl font-bold text-indigo-600">{stats.totalDrivers}</p>
+                  <p className="text-lg sm:text-xl lg:text-2xl font-bold text-indigo-600">{stats.totalDrivers}</p>
                 </div>
-                <User className="h-6 w-6 text-indigo-600" />
+                <User className="h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 text-indigo-600" />
               </div>
             </CardContent>
           </Card>
 
           <Card className="bg-white shadow-lg hover:shadow-xl transition-shadow">
-            <CardContent className="p-4">
+            <CardContent className="p-2 sm:p-3 lg:p-4">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs font-medium text-gray-600">Veículos</p>
-                  <p className="text-2xl font-bold text-orange-600">{stats.totalVehicles}</p>
+                  <p className="text-lg sm:text-xl lg:text-2xl font-bold text-orange-600">{stats.totalVehicles}</p>
                 </div>
-                <Truck className="h-6 w-6 text-orange-600" />
+                <Truck className="h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 text-orange-600" />
               </div>
             </CardContent>
           </Card>
 
           <Card className="bg-white shadow-lg hover:shadow-xl transition-shadow">
-            <CardContent className="p-4">
+            <CardContent className="p-2 sm:p-3 lg:p-4">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs font-medium text-gray-600">Despesas</p>
-                  <p className="text-lg font-bold text-red-600">
+                  <p className="text-sm sm:text-base lg:text-lg font-bold text-red-600">
                     {new Intl.NumberFormat('pt-BR', {
                       style: 'currency',
                       currency: 'BRL',
@@ -299,7 +300,7 @@ const ProtocolApp = () => {
                     }).format(stats.totalExpenses)}
                   </p>
                 </div>
-                <DollarSign className="h-6 w-6 text-red-600" />
+                <DollarSign className="h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 text-red-600" />
               </div>
             </CardContent>
           </Card>
@@ -307,9 +308,9 @@ const ProtocolApp = () => {
 
         {/* Main Content */}
         <Card className="bg-white shadow-xl">
-          <CardHeader className="border-b">
-            <div className="flex justify-between items-center">
-              <CardTitle className="text-2xl font-bold text-gray-800">
+          <CardHeader className="border-b p-3 sm:p-4 lg:p-6">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0">
+              <CardTitle className="text-xl sm:text-2xl font-bold text-gray-800">
                 Sistema de Gestão
               </CardTitle>
               <Button 
@@ -317,40 +318,86 @@ const ProtocolApp = () => {
                   setEditingProtocol(null);
                   setShowForm(true);
                 }}
-                className="bg-blue-600 hover:bg-blue-700 text-white"
+                className="bg-blue-600 hover:bg-blue-700 text-white w-full sm:w-auto"
+                size="sm"
               >
                 <Plus className="h-4 w-4 mr-2" />
-                Programar Entrega
+                <span className="hidden sm:inline">Programar Entrega</span>
+                <span className="sm:hidden">Nova Entrega</span>
               </Button>
             </div>
           </CardHeader>
           
-          <CardContent className="p-6">
+          <CardContent className="p-2 sm:p-4 lg:p-6">
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid w-full grid-cols-6">
-                <TabsTrigger value="dashboard" className="flex items-center gap-2">
-                  <BarChart3 className="h-4 w-4" />
-                  Dashboard
+              {/* Mobile: Dropdown menu, Desktop: Regular tabs */}
+              <div className="block sm:hidden mb-4">
+                <Button
+                  variant="outline"
+                  onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                  className="w-full justify-between"
+                >
+                  <span className="flex items-center gap-2">
+                    {activeTab === 'dashboard' && <><BarChart3 className="h-4 w-4" />Dashboard</>}
+                    {activeTab === 'scheduler' && <><Calendar className="h-4 w-4" />Entregas</>}
+                    {activeTab === 'list' && <><FileText className="h-4 w-4" />Histórico</>}
+                    {activeTab === 'cadastros' && <><Settings className="h-4 w-4" />Cadastros</>}
+                    {activeTab === 'reports' && <><BarChart3 className="h-4 w-4" />Relatórios</>}
+                    {activeTab === 'expenses' && <><DollarSign className="h-4 w-4" />Despesas</>}
+                  </span>
+                  <Menu className="h-4 w-4" />
+                </Button>
+                
+                {isMobileMenuOpen && (
+                  <div className="mt-2 bg-white border rounded-lg shadow-lg z-10">
+                    {[
+                      { value: 'dashboard', icon: BarChart3, label: 'Dashboard' },
+                      { value: 'scheduler', icon: Calendar, label: 'Entregas' },
+                      { value: 'list', icon: FileText, label: 'Histórico' },
+                      { value: 'cadastros', icon: Settings, label: 'Cadastros' },
+                      { value: 'reports', icon: BarChart3, label: 'Relatórios' },
+                      { value: 'expenses', icon: DollarSign, label: 'Despesas' }
+                    ].map((tab) => (
+                      <button
+                        key={tab.value}
+                        onClick={() => {
+                          setActiveTab(tab.value);
+                          setIsMobileMenuOpen(false);
+                        }}
+                        className="w-full flex items-center gap-2 px-4 py-3 text-left hover:bg-gray-50 first:rounded-t-lg last:rounded-b-lg"
+                      >
+                        <tab.icon className="h-4 w-4" />
+                        {tab.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <TabsList className="hidden sm:grid w-full grid-cols-3 lg:grid-cols-6">
+                <TabsTrigger value="dashboard" className="flex items-center gap-1 lg:gap-2 text-xs lg:text-sm">
+                  <BarChart3 className="h-3 w-3 lg:h-4 lg:w-4" />
+                  <span className="hidden lg:inline">Dashboard</span>
                 </TabsTrigger>
-                <TabsTrigger value="scheduler" className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4" />
-                  Entregas
+                <TabsTrigger value="scheduler" className="flex items-center gap-1 lg:gap-2 text-xs lg:text-sm">
+                  <Calendar className="h-3 w-3 lg:h-4 lg:w-4" />
+                  <span className="hidden lg:inline">Entregas</span>
                 </TabsTrigger>
-                <TabsTrigger value="list" className="flex items-center gap-2">
-                  <FileText className="h-4 w-4" />
-                  Histórico
+                <TabsTrigger value="list" className="flex items-center gap-1 lg:gap-2 text-xs lg:text-sm">
+                  <FileText className="h-3 w-3 lg:h-4 lg:w-4" />
+                  <span className="hidden lg:inline">Histórico</span>
                 </TabsTrigger>
-                <TabsTrigger value="cadastros" className="flex items-center gap-2">
-                  <Settings className="h-4 w-4" />
-                  Cadastros
+                <TabsTrigger value="cadastros" className="flex items-center gap-1 lg:gap-2 text-xs lg:text-sm">
+                  <Settings className="h-3 w-3 lg:h-4 lg:w-4" />
+                  <span className="hidden lg:inline">Cadastros</span>
                 </TabsTrigger>
-                <TabsTrigger value="reports" className="flex items-center gap-2">
-                  <BarChart3 className="h-4 w-4" />
-                  Relatórios
+                <TabsTrigger value="reports" className="flex items-center gap-1 lg:gap-2 text-xs lg:text-sm">
+                  <BarChart3 className="h-3 w-3 lg:h-4 lg:w-4" />
+                  <span className="hidden lg:inline">Relatórios</span>
                 </TabsTrigger>
-                <TabsTrigger value="expenses" className="flex items-center gap-2">
-                  <DollarSign className="h-4 w-4" />
-                  Despesas
+                <TabsTrigger value="expenses" className="flex items-center gap-1 lg:gap-2 text-xs lg:text-sm">
+                  <DollarSign className="h-3 w-3 lg:h-4 lg:w-4" />
+                  <span className="hidden lg:inline">Despesas</span>
                 </TabsTrigger>
               </TabsList>
               
@@ -462,10 +509,10 @@ const ProtocolApp = () => {
           </CardContent>
         </Card>
 
-        {/* Protocol Form Modal */}
+        {/* Protocol Form Modal - Mobile responsive */}
         {showForm && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-lg shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-2 sm:p-4 z-50">
+            <div className="bg-white rounded-lg shadow-2xl w-full max-w-4xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto">
               <ProtocolForm
                 products={products}
                 drivers={drivers}
@@ -481,13 +528,17 @@ const ProtocolApp = () => {
           </div>
         )}
 
-        {/* Delivery Confirmation Modal */}
+        {/* Delivery Confirmation Modal - Mobile responsive */}
         {confirmingDelivery && (
-          <DeliveryConfirmation
-            protocol={confirmingDelivery}
-            onConfirm={handleDeliveryConfirmed}
-            onCancel={() => setConfirmingDelivery(null)}
-          />
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-2 sm:p-4 z-50">
+            <div className="w-full max-w-2xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto">
+              <DeliveryConfirmation
+                protocol={confirmingDelivery}
+                onConfirm={handleDeliveryConfirmed}
+                onCancel={() => setConfirmingDelivery(null)}
+              />
+            </div>
+          </div>
         )}
       </div>
     </div>

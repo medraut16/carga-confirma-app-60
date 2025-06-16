@@ -90,20 +90,20 @@ const Dashboard: React.FC<DashboardProps> = ({ protocols, expenses, onNavigateTo
   };
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-3xl font-bold text-gray-800 mb-2">Dashboard</h2>
-        <p className="text-gray-600">Visão geral do desempenho financeiro de hoje</p>
+    <div className="space-y-4 sm:space-y-6">
+      <div className="text-center sm:text-left">
+        <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">Dashboard</h2>
+        <p className="text-sm sm:text-base text-gray-600">Visão geral do desempenho financeiro de hoje</p>
       </div>
 
-      {/* Cards principais */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      {/* Cards principais - Mobile: 1 column, Tablet: 2, Desktop: 4 */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
         <Card className={`${todayProfit >= 0 ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Resultado do Dia</p>
-                <p className={`text-2xl font-bold ${todayProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                <p className={`text-xl sm:text-2xl font-bold ${todayProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                   {new Intl.NumberFormat('pt-BR', {
                     style: 'currency',
                     currency: 'BRL'
@@ -114,9 +114,9 @@ const Dashboard: React.FC<DashboardProps> = ({ protocols, expenses, onNavigateTo
                 </p>
               </div>
               {todayProfit >= 0 ? (
-                <TrendingUp className="h-8 w-8 text-green-600" />
+                <TrendingUp className="h-6 w-6 sm:h-8 sm:w-8 text-green-600" />
               ) : (
-                <TrendingDown className="h-8 w-8 text-red-600" />
+                <TrendingDown className="h-6 w-6 sm:h-8 sm:w-8 text-red-600" />
               )}
             </div>
           </CardContent>
@@ -126,11 +126,11 @@ const Dashboard: React.FC<DashboardProps> = ({ protocols, expenses, onNavigateTo
           className="bg-blue-50 border-blue-200 cursor-pointer hover:shadow-lg transition-shadow"
           onClick={handleRevenueClick}
         >
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Receita do Dia</p>
-                <p className="text-2xl font-bold text-blue-600">
+                <p className="text-xl sm:text-2xl font-bold text-blue-600">
                   {new Intl.NumberFormat('pt-BR', {
                     style: 'currency',
                     currency: 'BRL'
@@ -140,7 +140,7 @@ const Dashboard: React.FC<DashboardProps> = ({ protocols, expenses, onNavigateTo
                   {deliveredToday} entregas realizadas
                 </p>
               </div>
-              <DollarSign className="h-8 w-8 text-blue-600" />
+              <DollarSign className="h-6 w-6 sm:h-8 sm:w-8 text-blue-600" />
             </div>
           </CardContent>
         </Card>
@@ -149,11 +149,11 @@ const Dashboard: React.FC<DashboardProps> = ({ protocols, expenses, onNavigateTo
           className="bg-orange-50 border-orange-200 cursor-pointer hover:shadow-lg transition-shadow"
           onClick={handleExpenseClick}
         >
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Despesas do Dia</p>
-                <p className="text-2xl font-bold text-orange-600">
+                <p className="text-xl sm:text-2xl font-bold text-orange-600">
                   {new Intl.NumberFormat('pt-BR', {
                     style: 'currency',
                     currency: 'BRL'
@@ -163,38 +163,38 @@ const Dashboard: React.FC<DashboardProps> = ({ protocols, expenses, onNavigateTo
                   {todayExpenses.length} lançamentos
                 </p>
               </div>
-              <AlertCircle className="h-8 w-8 text-orange-600" />
+              <AlertCircle className="h-6 w-6 sm:h-8 sm:w-8 text-orange-600" />
             </div>
           </CardContent>
         </Card>
 
         <Card className="bg-purple-50 border-purple-200">
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Entregas Pendentes</p>
-                <p className="text-2xl font-bold text-purple-600">{scheduledToday}</p>
+                <p className="text-xl sm:text-2xl font-bold text-purple-600">{scheduledToday}</p>
                 <p className="text-xs text-gray-500 mt-1">
                   programadas para hoje
                 </p>
               </div>
-              <Package className="h-8 w-8 text-purple-600" />
+              <Package className="h-6 w-6 sm:h-8 sm:w-8 text-purple-600" />
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Resumo semanal */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Resumo semanal - Mobile: 1 column, Desktop: 2 columns */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         <Card>
-          <CardHeader>
-            <CardTitle>Últimos 7 Dias</CardTitle>
+          <CardHeader className="p-4 sm:p-6">
+            <CardTitle className="text-lg sm:text-xl">Últimos 7 Dias</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
+          <CardContent className="p-4 sm:p-6 pt-0">
+            <div className="space-y-3 sm:space-y-4">
               <div className="flex justify-between items-center">
                 <span className="text-sm text-gray-600">Lucro Total da Semana</span>
-                <span className={`font-bold ${weeklyProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                <span className={`font-bold text-sm sm:text-base ${weeklyProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                   {new Intl.NumberFormat('pt-BR', {
                     style: 'currency',
                     currency: 'BRL'
@@ -203,7 +203,7 @@ const Dashboard: React.FC<DashboardProps> = ({ protocols, expenses, onNavigateTo
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-gray-600">Média Diária</span>
-                <span className={`font-bold ${avgDailyProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                <span className={`font-bold text-sm sm:text-base ${avgDailyProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                   {new Intl.NumberFormat('pt-BR', {
                     style: 'currency',
                     currency: 'BRL'
@@ -215,11 +215,11 @@ const Dashboard: React.FC<DashboardProps> = ({ protocols, expenses, onNavigateTo
         </Card>
 
         <Card>
-          <CardHeader>
-            <CardTitle>Status das Entregas</CardTitle>
+          <CardHeader className="p-4 sm:p-6">
+            <CardTitle className="text-lg sm:text-xl">Status das Entregas</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
+          <CardContent className="p-4 sm:p-6 pt-0">
+            <div className="space-y-3 sm:space-y-4">
               <div className="flex justify-between items-center">
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 bg-green-500 rounded-full"></div>
@@ -246,21 +246,21 @@ const Dashboard: React.FC<DashboardProps> = ({ protocols, expenses, onNavigateTo
         </Card>
       </div>
 
-      {/* Gráfico simples dos últimos 7 dias */}
+      {/* Gráfico - Mobile responsive */}
       <Card>
-        <CardHeader>
-          <CardTitle>Evolução do Lucro (Últimos 7 Dias)</CardTitle>
+        <CardHeader className="p-4 sm:p-6">
+          <CardTitle className="text-lg sm:text-xl">Evolução do Lucro (Últimos 7 Dias)</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="h-64 flex items-end justify-between gap-2">
+        <CardContent className="p-4 sm:p-6 pt-0">
+          <div className="h-48 sm:h-64 flex items-end justify-between gap-1 sm:gap-2">
             {last7Days.map((day, index) => {
               const maxProfit = Math.max(...last7Days.map(d => Math.abs(d.profit)));
-              const height = maxProfit > 0 ? (Math.abs(day.profit) / maxProfit) * 200 : 20;
+              const height = maxProfit > 0 ? (Math.abs(day.profit) / maxProfit) * (window.innerWidth < 640 ? 160 : 200) : 20;
               const isPositive = day.profit >= 0;
               
               return (
                 <div key={index} className="flex-1 flex flex-col items-center">
-                  <div className="text-xs text-gray-500 mb-2">
+                  <div className="text-xs text-gray-500 mb-2 text-center">
                     {new Intl.NumberFormat('pt-BR', {
                       style: 'currency',
                       currency: 'BRL',
