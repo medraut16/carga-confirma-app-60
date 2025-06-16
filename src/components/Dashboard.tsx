@@ -7,9 +7,10 @@ import { TrendingUp, TrendingDown, DollarSign, Package, Truck, AlertCircle } fro
 interface DashboardProps {
   protocols: DeliveryProtocol[];
   expenses: Expense[];
+  onNavigateToReports?: (tab: string) => void;
 }
 
-const Dashboard: React.FC<DashboardProps> = ({ protocols, expenses }) => {
+const Dashboard: React.FC<DashboardProps> = ({ protocols, expenses, onNavigateToReports }) => {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   
@@ -76,6 +77,18 @@ const Dashboard: React.FC<DashboardProps> = ({ protocols, expenses }) => {
   const weeklyProfit = last7Days.reduce((sum, day) => sum + day.profit, 0);
   const avgDailyProfit = weeklyProfit / 7;
 
+  const handleRevenueClick = () => {
+    if (onNavigateToReports) {
+      onNavigateToReports('delivery-reports');
+    }
+  };
+
+  const handleExpenseClick = () => {
+    if (onNavigateToReports) {
+      onNavigateToReports('expense-reports');
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -109,7 +122,10 @@ const Dashboard: React.FC<DashboardProps> = ({ protocols, expenses }) => {
           </CardContent>
         </Card>
 
-        <Card className="bg-blue-50 border-blue-200">
+        <Card 
+          className="bg-blue-50 border-blue-200 cursor-pointer hover:shadow-lg transition-shadow"
+          onClick={handleRevenueClick}
+        >
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
@@ -129,7 +145,10 @@ const Dashboard: React.FC<DashboardProps> = ({ protocols, expenses }) => {
           </CardContent>
         </Card>
 
-        <Card className="bg-orange-50 border-orange-200">
+        <Card 
+          className="bg-orange-50 border-orange-200 cursor-pointer hover:shadow-lg transition-shadow"
+          onClick={handleExpenseClick}
+        >
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>

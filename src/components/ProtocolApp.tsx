@@ -24,7 +24,8 @@ const ProtocolApp = () => {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [expenseCategories, setExpenseCategories] = useState<ExpenseCategory[]>([]);
-  const [activeTab, setActiveTab] = useState('list');
+  const [activeTab, setActiveTab] = useState('dashboard');
+  const [reportsTab, setReportsTab] = useState('delivery-reports');
   const [showForm, setShowForm] = useState(false);
   const [editingProtocol, setEditingProtocol] = useState<DeliveryProtocol | null>(null);
   const [confirmingDelivery, setConfirmingDelivery] = useState<DeliveryProtocol | null>(null);
@@ -177,6 +178,11 @@ const ProtocolApp = () => {
     );
     saveProtocols(updatedProtocols);
     setConfirmingDelivery(null);
+  };
+
+  const handleNavigateToReports = (reportTab: string) => {
+    setActiveTab('reports');
+    setReportsTab(reportTab);
   };
 
   const stats = {
@@ -352,6 +358,7 @@ const ProtocolApp = () => {
                 <Dashboard 
                   protocols={protocols}
                   expenses={expenses}
+                  onNavigateToReports={handleNavigateToReports}
                 />
               </TabsContent>
 
@@ -419,7 +426,7 @@ const ProtocolApp = () => {
               </TabsContent>
               
               <TabsContent value="reports" className="mt-6">
-                <Tabs defaultValue="delivery-reports" className="w-full">
+                <Tabs value={reportsTab} onValueChange={setReportsTab} className="w-full">
                   <TabsList className="grid w-full grid-cols-2">
                     <TabsTrigger value="delivery-reports">Relatório de Entregas</TabsTrigger>
                     <TabsTrigger value="expense-reports">Relatório de Despesas</TabsTrigger>

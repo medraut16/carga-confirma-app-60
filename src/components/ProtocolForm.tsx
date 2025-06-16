@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -165,7 +164,73 @@ const ProtocolForm: React.FC<ProtocolFormProps> = ({
             </div>
           </div>
 
-          {/* Products Information */}
+          {/* Driver and Vehicle Information - moved before products */}
+          <div className="bg-yellow-50 p-4 rounded-lg">
+            <h3 className="text-lg font-semibold mb-4 text-gray-700">Motorista e Veículo</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="driver">Motorista *</Label>
+                <select
+                  id="driver"
+                  value={formData.driverId}
+                  onChange={(e) => handleInputChange('driverId', e.target.value)}
+                  className="mt-1 w-full h-10 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                >
+                  <option value="">Selecione um motorista</option>
+                  {drivers.map(driver => (
+                    <option key={driver.id} value={driver.id}>
+                      {driver.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              
+              <div>
+                <Label htmlFor="vehicle">Veículo (Placa) *</Label>
+                <select
+                  id="vehicle"
+                  value={formData.vehicleId}
+                  onChange={(e) => handleInputChange('vehicleId', e.target.value)}
+                  className="mt-1 w-full h-10 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                >
+                  <option value="">Selecione um veículo</option>
+                  {vehicles.map(vehicle => (
+                    <option key={vehicle.id} value={vehicle.id}>
+                      {vehicle.name} ({vehicle.plate})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            {selectedVehicle && selectedVehicle.compartments && selectedVehicle.compartments.length > 0 && (
+              <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+                <p className="text-sm font-medium text-blue-800 mb-2">
+                  Compartimentos disponíveis no veículo selecionado:
+                </p>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                  {selectedVehicle.compartments.map(comp => (
+                    <div key={comp.id} className="text-xs bg-white p-2 rounded border">
+                      <span className="font-medium">{comp.name}</span>
+                      <br />
+                      <span className="text-gray-600">Capacidade: {comp.capacity}L</span>
+                      {comp.currentProduct && (
+                        <>
+                          <br />
+                          <span className="text-orange-600">
+                            Em uso: {comp.currentQuantity}L
+                          </span>
+                        </>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Products Information - updated */}
           <div className="bg-blue-50 p-4 rounded-lg">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-semibold text-gray-700">Produtos da Entrega</h3>
@@ -235,20 +300,24 @@ const ProtocolForm: React.FC<ProtocolFormProps> = ({
                     </div>
                     
                     {selectedVehicle && selectedVehicle.compartments && selectedVehicle.compartments.length > 0 && (
-                      <div>
-                        <Label>Compartimento</Label>
+                      <div className="md:col-span-2">
+                        <Label>Compartimento do Veículo *</Label>
                         <Select value={product.compartmentId} onValueChange={(value) => updateProduct(index, 'compartmentId', value)}>
                           <SelectTrigger className="mt-1">
-                            <SelectValue placeholder="Selecione o compartimento" />
+                            <SelectValue placeholder="Selecione o compartimento para este produto" />
                           </SelectTrigger>
                           <SelectContent>
                             {selectedVehicle.compartments.map(comp => (
                               <SelectItem key={comp.id} value={comp.id}>
-                                {comp.name} ({comp.capacity}L)
+                                {comp.name} - Capacidade: {comp.capacity}L
+                                {comp.currentProduct && ` (Em uso: ${comp.currentQuantity}L)`}
                               </SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
+                        <p className="text-xs text-gray-600 mt-1">
+                          Selecione em qual compartimento do veículo este produto será transportado
+                        </p>
                       </div>
                     )}
                   </div>
@@ -315,48 +384,6 @@ const ProtocolForm: React.FC<ProtocolFormProps> = ({
                   className="mt-1"
                   rows={2}
                 />
-              </div>
-            </div>
-          </div>
-
-          {/* Driver and Vehicle Information */}
-          <div className="bg-yellow-50 p-4 rounded-lg">
-            <h3 className="text-lg font-semibold mb-4 text-gray-700">Motorista e Veículo</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="driver">Motorista *</Label>
-                <select
-                  id="driver"
-                  value={formData.driverId}
-                  onChange={(e) => handleInputChange('driverId', e.target.value)}
-                  className="mt-1 w-full h-10 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
-                >
-                  <option value="">Selecione um motorista</option>
-                  {drivers.map(driver => (
-                    <option key={driver.id} value={driver.id}>
-                      {driver.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              
-              <div>
-                <Label htmlFor="vehicle">Veículo (Placa) *</Label>
-                <select
-                  id="vehicle"
-                  value={formData.vehicleId}
-                  onChange={(e) => handleInputChange('vehicleId', e.target.value)}
-                  className="mt-1 w-full h-10 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
-                >
-                  <option value="">Selecione um veículo</option>
-                  {vehicles.map(vehicle => (
-                    <option key={vehicle.id} value={vehicle.id}>
-                      {vehicle.name} ({vehicle.plate})
-                    </option>
-                  ))}
-                </select>
               </div>
             </div>
           </div>
