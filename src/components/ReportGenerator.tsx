@@ -7,14 +7,16 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Download, FileText, Calendar, DollarSign, Package, TrendingUp, BarChart3 } from 'lucide-react';
-import { DeliveryProtocol, ReportFilters, Product } from '@/types/protocol';
+import { DeliveryProtocol, ReportFilters, Product, Driver, Vehicle } from '@/types/protocol';
 
 interface ReportGeneratorProps {
   protocols: DeliveryProtocol[];
   products: Product[];
+  drivers: Driver[];
+  vehicles: Vehicle[];
 }
 
-const ReportGenerator: React.FC<ReportGeneratorProps> = ({ protocols, products }) => {
+const ReportGenerator: React.FC<ReportGeneratorProps> = ({ protocols, products, drivers, vehicles }) => {
   const [filters, setFilters] = useState<ReportFilters>({});
   const [showReport, setShowReport] = useState(false);
 
@@ -28,6 +30,8 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({ protocols, products }
     if (filters.clientName && !protocol.clientName.toLowerCase().includes(filters.clientName.toLowerCase())) return false;
     if (filters.status && protocol.status !== filters.status) return false;
     if (filters.productId && protocol.productId !== filters.productId) return false;
+    if (filters.driverId && protocol.driverId !== filters.driverId) return false;
+    if (filters.vehicleId && protocol.vehicleId !== filters.vehicleId) return false;
     return true;
   });
 
@@ -57,6 +61,16 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({ protocols, products }
     return product ? product.name : 'Produto não encontrado';
   };
 
+  const getDriverName = (driverId: string) => {
+    const driver = drivers.find(d => d.id === driverId);
+    return driver ? driver.name : 'Motorista não encontrado';
+  };
+
+  const getVehicleInfo = (vehicleId: string) => {
+    const vehicle = vehicles.find(v => v.id === vehicleId);
+    return vehicle ? `${vehicle.name} (${vehicle.plate})` : 'Veículo não encontrado';
+  };
+
   const generateReport = () => {
     setShowReport(true);
   };
@@ -70,6 +84,8 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({ protocols, products }
       'Valor': protocol.deliveryValue,
       'Data': formatDate(protocol.deliveryDate),
       'Horário': protocol.deliveryTime,
+      'Motorista': getDriverName(protocol.driverId),
+      'Veículo': getVehicleInfo(protocol.vehicleId),
       'Status': protocol.status,
       'Endereço': protocol.address,
       'Observações': protocol.notes || ''
@@ -127,7 +143,7 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({ protocols, products }
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-7 gap-4">
             <div>
               <Label htmlFor="startDate">Data Inicial</Label>
               <Input
@@ -172,6 +188,40 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({ protocols, products }
                   {products.map(product => (
                     <SelectItem key={product.id} value={product.id}>
                       {product.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label htmlFor="driver">Motorista</Label>
+              <Select value={filters.driverId || 'all'} onValueChange={(value) => handleFilterChange('driverId', value === 'all' ? undefined : value)}>
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder="Todos os motoristas" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos os motoristas</SelectItem>
+                  {drivers.map(driver => (
+                    <SelectItem key={driver.id} value={driver.id}>
+                      {driver.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label htmlFor="vehicle">Veículo</Label>
+              <Select value={filters.vehicleId || 'all'} onValueChange={(value) => handleFilterChange('vehicleId', value === 'all' ? undefined : value)}>
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder="Todos os veículos" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos os veículos</SelectItem>
+                  {vehicles.map(vehicle => (
+                    <SelectItem key={vehicle.id} value={vehicle.id}>
+                      {vehicle.name} ({vehicle.plate})
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -351,6 +401,8 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({ protocols, products }
                       <th className="border border-gray-300 p-2 text-left">Valor</th>
                       <th className="border border-gray-300 p-2 text-left">Data</th>
                       <th className="border border-gray-300 p-2 text-left">Horário</th>
+                      <th className="border border-gray-300 p-2 text-left">Motorista</th>
+                      <th className="border border-gray-300 p-2 text-left">Veículo</th>
                       <th className="border border-gray-300 p-2 text-left">Status</th>
                     </tr>
                   </thead>
@@ -363,6 +415,8 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({ protocols, products }
                         <td className="border border-gray-300 p-2">{formatCurrency(protocol.deliveryValue)}</td>
                         <td className="border border-gray-300 p-2">{formatDate(protocol.deliveryDate)}</td>
                         <td className="border border-gray-300 p-2">{protocol.deliveryTime}</td>
+                        <td className="border border-gray-300 p-2">{getDriverName(protocol.driverId)}</td>
+                        <td className="border border-gray-300 p-2">{getVehicleInfo(protocol.vehicleId)}</td>
                         <td className="border border-gray-300 p-2">
                           <Badge variant={getStatusBadge(protocol.status).variant}>
                             {getStatusBadge(protocol.status).label}

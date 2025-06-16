@@ -7,41 +7,53 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { X, Save, PenTool, Camera } from 'lucide-react';
-import { DeliveryProtocol, Product } from '@/types/protocol';
+import { DeliveryProtocol, Product, Driver, Vehicle } from '@/types/protocol';
 import SignatureCapture from './SignatureCapture';
 import PhotoUpload from './PhotoUpload';
 
 interface ProtocolFormProps {
   products: Product[];
+  drivers: Driver[];
+  vehicles: Vehicle[];
   onSubmit: (protocol: Omit<DeliveryProtocol, 'id' | 'createdAt'>) => void;
   onCancel: () => void;
+  editingProtocol?: DeliveryProtocol | null;
 }
 
-const ProtocolForm: React.FC<ProtocolFormProps> = ({ products, onSubmit, onCancel }) => {
+const ProtocolForm: React.FC<ProtocolFormProps> = ({ 
+  products, 
+  drivers, 
+  vehicles, 
+  onSubmit, 
+  onCancel, 
+  editingProtocol 
+}) => {
   const [formData, setFormData] = useState({
-    clientName: '',
-    clientDocument: '',
-    clientPhone: '',
-    address: '',
-    productId: '',
-    productDescription: '',
-    quantity: 1,
-    deliveryValue: 0,
-    deliveryDate: new Date().toISOString().split('T')[0],
-    deliveryTime: new Date().toTimeString().slice(0, 5),
-    notes: '',
-    status: 'pending' as const,
+    clientName: editingProtocol?.clientName || '',
+    clientDocument: editingProtocol?.clientDocument || '',
+    clientPhone: editingProtocol?.clientPhone || '',
+    address: editingProtocol?.address || '',
+    productId: editingProtocol?.productId || '',
+    productDescription: editingProtocol?.productDescription || '',
+    quantity: editingProtocol?.quantity || 1,
+    deliveryValue: editingProtocol?.deliveryValue || 0,
+    deliveryDate: editingProtocol ? editingProtocol.deliveryDate.toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+    deliveryTime: editingProtocol?.deliveryTime || new Date().toTimeString().slice(0, 5),
+    driverId: editingProtocol?.driverId || '',
+    vehicleId: editingProtocol?.vehicleId || '',
+    notes: editingProtocol?.notes || '',
+    status: editingProtocol?.status || 'pending' as const,
   });
 
-  const [signature, setSignature] = useState('');
-  const [photos, setPhotos] = useState<string[]>([]);
+  const [signature, setSignature] = useState(editingProtocol?.signature || '');
+  const [photos, setPhotos] = useState<string[]>(editingProtocol?.photos || []);
   const [showSignature, setShowSignature] = useState(false);
   const [showPhotos, setShowPhotos] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.clientName || !formData.productDescription) {
+    if (!formData.clientName || !formData.productDescription || !formData.driverId || !formData.vehicleId) {
       alert('Por favor, preencha os campos obrigatórios');
       return;
     }
@@ -77,12 +89,22 @@ const ProtocolForm: React.FC<ProtocolFormProps> = ({ products, onSubmit, onCance
     }
   };
 
+  const getDriverName = (driverId: string) => {
+    const driver = drivers.find(d => d.id === driverId);
+    return driver ? driver.name : '';
+  };
+
+  const getVehicleName = (vehicleId: string) => {
+    const vehicle = vehicles.find(v => v.id === vehicleId);
+    return vehicle ? `${vehicle.name} (${vehicle.plate})` : '';
+  };
+
   return (
     <Card className="border-0 shadow-none">
       <CardHeader className="pb-4">
         <div className="flex justify-between items-center">
           <CardTitle className="text-2xl font-bold text-gray-800">
-            Novo Protocolo de Entrega
+            {editingProtocol ? 'Editar Protocolo de Entrega' : 'Novo Protocolo de Entrega'}
           </CardTitle>
           <Button variant="ghost" onClick={onCancel}>
             <X className="h-4 w-4" />
@@ -239,6 +261,48 @@ const ProtocolForm: React.FC<ProtocolFormProps> = ({ products, onSubmit, onCance
             </div>
           </div>
 
+          {/* Driver and Vehicle Information */}
+          <div className="bg-yellow-50 p-4 rounded-lg">
+            <h3 className="text-lg font-semibold mb-4 text-gray-700">Motorista e Veículo</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="driver">Motorista *</Label>
+                <select
+                  id="driver"
+                  value={formData.driverId}
+                  onChange={(e) => handleInputChange('driverId', e.target.value)}
+                  className="mt-1 w-full h-10 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                >
+                  <option value="">Selecione um motorista</option>
+                  {drivers.map(driver => (
+                    <option key={driver.id} value={driver.id}>
+                      {driver.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              
+              <div>
+                <Label htmlFor="vehicle">Veículo (Placa) *</Label>
+                <select
+                  id="vehicle"
+                  value={formData.vehicleId}
+                  onChange={(e) => handleInputChange('vehicleId', e.target.value)}
+                  className="mt-1 w-full h-10 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                >
+                  <option value="">Selecione um veículo</option>
+                  {vehicles.map(vehicle => (
+                    <option key={vehicle.id} value={vehicle.id}>
+                      {vehicle.name} ({vehicle.plate})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </div>
+
           {/* Signature and Photos */}
           <div className="bg-green-50 p-4 rounded-lg">
             <h3 className="text-lg font-semibold mb-4 text-gray-700">Assinatura e Fotos</h3>
@@ -279,7 +343,7 @@ const ProtocolForm: React.FC<ProtocolFormProps> = ({ products, onSubmit, onCance
             </Button>
             <Button type="submit" className="bg-blue-600 hover:bg-blue-700">
               <Save className="h-4 w-4 mr-2" />
-              Salvar Protocolo
+              {editingProtocol ? 'Atualizar Protocolo' : 'Salvar Protocolo'}
             </Button>
           </div>
         </form>

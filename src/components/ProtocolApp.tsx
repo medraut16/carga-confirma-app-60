@@ -3,22 +3,31 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Package, FileText, BarChart3, Plus, Settings } from 'lucide-react';
-import { DeliveryProtocol, Product } from '@/types/protocol';
+import { Package, FileText, BarChart3, Plus, Settings, User, Truck, DollarSign } from 'lucide-react';
+import { DeliveryProtocol, Product, Driver, Vehicle, Expense, ExpenseCategory } from '@/types/protocol';
 import ProtocolForm from './ProtocolForm';
 import ProtocolList from './ProtocolList';
 import ReportGenerator from './ReportGenerator';
 import ProductManager from './ProductManager';
+import DriverManager from './DriverManager';
+import VehicleManager from './VehicleManager';
+import ExpenseManager from './ExpenseManager';
+import ExpenseReport from './ExpenseReport';
 import { toast } from '@/hooks/use-toast';
 
 const ProtocolApp = () => {
   const [protocols, setProtocols] = useState<DeliveryProtocol[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
+  const [drivers, setDrivers] = useState<Driver[]>([]);
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [expenseCategories, setExpenseCategories] = useState<ExpenseCategory[]>([]);
   const [activeTab, setActiveTab] = useState('list');
   const [showForm, setShowForm] = useState(false);
+  const [editingProtocol, setEditingProtocol] = useState<DeliveryProtocol | null>(null);
 
   useEffect(() => {
-    // Load protocols
+    // Load all data from localStorage
     const savedProtocols = localStorage.getItem('deliveryProtocols');
     if (savedProtocols) {
       const parsed = JSON.parse(savedProtocols);
@@ -29,13 +38,49 @@ const ProtocolApp = () => {
       })));
     }
 
-    // Load products
     const savedProducts = localStorage.getItem('products');
     if (savedProducts) {
       const parsed = JSON.parse(savedProducts);
       setProducts(parsed.map((p: any) => ({
         ...p,
         createdAt: new Date(p.createdAt)
+      })));
+    }
+
+    const savedDrivers = localStorage.getItem('drivers');
+    if (savedDrivers) {
+      const parsed = JSON.parse(savedDrivers);
+      setDrivers(parsed.map((d: any) => ({
+        ...d,
+        createdAt: new Date(d.createdAt)
+      })));
+    }
+
+    const savedVehicles = localStorage.getItem('vehicles');
+    if (savedVehicles) {
+      const parsed = JSON.parse(savedVehicles);
+      setVehicles(parsed.map((v: any) => ({
+        ...v,
+        createdAt: new Date(v.createdAt)
+      })));
+    }
+
+    const savedExpenses = localStorage.getItem('expenses');
+    if (savedExpenses) {
+      const parsed = JSON.parse(savedExpenses);
+      setExpenses(parsed.map((e: any) => ({
+        ...e,
+        date: new Date(e.date),
+        createdAt: new Date(e.createdAt)
+      })));
+    }
+
+    const savedCategories = localStorage.getItem('expenseCategories');
+    if (savedCategories) {
+      const parsed = JSON.parse(savedCategories);
+      setExpenseCategories(parsed.map((c: any) => ({
+        ...c,
+        createdAt: new Date(c.createdAt)
       })));
     }
   }, []);
@@ -50,6 +95,26 @@ const ProtocolApp = () => {
     setProducts(newProducts);
   };
 
+  const saveDrivers = (newDrivers: Driver[]) => {
+    localStorage.setItem('drivers', JSON.stringify(newDrivers));
+    setDrivers(newDrivers);
+  };
+
+  const saveVehicles = (newVehicles: Vehicle[]) => {
+    localStorage.setItem('vehicles', JSON.stringify(newVehicles));
+    setVehicles(newVehicles);
+  };
+
+  const saveExpenses = (newExpenses: Expense[]) => {
+    localStorage.setItem('expenses', JSON.stringify(newExpenses));
+    setExpenses(newExpenses);
+  };
+
+  const saveExpenseCategories = (newCategories: ExpenseCategory[]) => {
+    localStorage.setItem('expenseCategories', JSON.stringify(newCategories));
+    setExpenseCategories(newCategories);
+  };
+
   const handleCreateProtocol = (protocol: Omit<DeliveryProtocol, 'id' | 'createdAt'>) => {
     const newProtocol: DeliveryProtocol = {
       ...protocol,
@@ -60,10 +125,33 @@ const ProtocolApp = () => {
     const updatedProtocols = [...protocols, newProtocol];
     saveProtocols(updatedProtocols);
     setShowForm(false);
+    setEditingProtocol(null);
     toast({
       title: "Protocolo criado com sucesso!",
       description: `Protocolo para ${protocol.clientName} foi registrado.`,
     });
+  };
+
+  const handleUpdateProtocol = (protocol: Omit<DeliveryProtocol, 'id' | 'createdAt'>) => {
+    if (editingProtocol) {
+      const updatedProtocols = protocols.map(p => 
+        p.id === editingProtocol.id 
+          ? { ...editingProtocol, ...protocol }
+          : p
+      );
+      saveProtocols(updatedProtocols);
+      setShowForm(false);
+      setEditingProtocol(null);
+      toast({
+        title: "Protocolo atualizado com sucesso!",
+        description: `Protocolo para ${protocol.clientName} foi atualizado.`,
+      });
+    }
+  };
+
+  const handleEditProtocol = (protocol: DeliveryProtocol) => {
+    setEditingProtocol(protocol);
+    setShowForm(true);
   };
 
   const handleDeleteProtocol = (id: string) => {
@@ -81,6 +169,9 @@ const ProtocolApp = () => {
     pending: protocols.filter(p => p.status === 'pending').length,
     failed: protocols.filter(p => p.status === 'failed').length,
     totalProducts: products.length,
+    totalDrivers: drivers.length,
+    totalVehicles: vehicles.length,
+    totalExpenses: expenses.reduce((sum, exp) => sum + exp.value, 0),
   };
 
   return (
@@ -97,69 +188,111 @@ const ProtocolApp = () => {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4 mb-8">
           <Card className="bg-white shadow-lg hover:shadow-xl transition-shadow">
-            <CardContent className="p-6">
+            <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Total</p>
-                  <p className="text-3xl font-bold text-blue-600">{stats.total}</p>
+                  <p className="text-xs font-medium text-gray-600">Protocolos</p>
+                  <p className="text-2xl font-bold text-blue-600">{stats.total}</p>
                 </div>
-                <Package className="h-8 w-8 text-blue-600" />
+                <Package className="h-6 w-6 text-blue-600" />
               </div>
             </CardContent>
           </Card>
           
           <Card className="bg-white shadow-lg hover:shadow-xl transition-shadow">
-            <CardContent className="p-6">
+            <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Entregues</p>
-                  <p className="text-3xl font-bold text-green-600">{stats.delivered}</p>
+                  <p className="text-xs font-medium text-gray-600">Entregues</p>
+                  <p className="text-2xl font-bold text-green-600">{stats.delivered}</p>
                 </div>
-                <div className="h-8 w-8 bg-green-100 rounded-full flex items-center justify-center">
-                  <div className="h-4 w-4 bg-green-600 rounded-full"></div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="bg-white shadow-lg hover:shadow-xl transition-shadow">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Pendentes</p>
-                  <p className="text-3xl font-bold text-yellow-600">{stats.pending}</p>
-                </div>
-                <div className="h-8 w-8 bg-yellow-100 rounded-full flex items-center justify-center">
-                  <div className="h-4 w-4 bg-yellow-600 rounded-full"></div>
+                <div className="h-6 w-6 bg-green-100 rounded-full flex items-center justify-center">
+                  <div className="h-3 w-3 bg-green-600 rounded-full"></div>
                 </div>
               </div>
             </CardContent>
           </Card>
           
           <Card className="bg-white shadow-lg hover:shadow-xl transition-shadow">
-            <CardContent className="p-6">
+            <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Falharam</p>
-                  <p className="text-3xl font-bold text-red-600">{stats.failed}</p>
+                  <p className="text-xs font-medium text-gray-600">Pendentes</p>
+                  <p className="text-2xl font-bold text-yellow-600">{stats.pending}</p>
                 </div>
-                <div className="h-8 w-8 bg-red-100 rounded-full flex items-center justify-center">
-                  <div className="h-4 w-4 bg-red-600 rounded-full"></div>
+                <div className="h-6 w-6 bg-yellow-100 rounded-full flex items-center justify-center">
+                  <div className="h-3 w-3 bg-yellow-600 rounded-full"></div>
                 </div>
               </div>
             </CardContent>
           </Card>
           
           <Card className="bg-white shadow-lg hover:shadow-xl transition-shadow">
-            <CardContent className="p-6">
+            <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Produtos</p>
-                  <p className="text-3xl font-bold text-purple-600">{stats.totalProducts}</p>
+                  <p className="text-xs font-medium text-gray-600">Falharam</p>
+                  <p className="text-2xl font-bold text-red-600">{stats.failed}</p>
                 </div>
-                <Settings className="h-8 w-8 text-purple-600" />
+                <div className="h-6 w-6 bg-red-100 rounded-full flex items-center justify-center">
+                  <div className="h-3 w-3 bg-red-600 rounded-full"></div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-white shadow-lg hover:shadow-xl transition-shadow">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-medium text-gray-600">Produtos</p>
+                  <p className="text-2xl font-bold text-purple-600">{stats.totalProducts}</p>
+                </div>
+                <Settings className="h-6 w-6 text-purple-600" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white shadow-lg hover:shadow-xl transition-shadow">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-medium text-gray-600">Motoristas</p>
+                  <p className="text-2xl font-bold text-indigo-600">{stats.totalDrivers}</p>
+                </div>
+                <User className="h-6 w-6 text-indigo-600" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white shadow-lg hover:shadow-xl transition-shadow">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-medium text-gray-600">Veículos</p>
+                  <p className="text-2xl font-bold text-orange-600">{stats.totalVehicles}</p>
+                </div>
+                <Truck className="h-6 w-6 text-orange-600" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white shadow-lg hover:shadow-xl transition-shadow">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-medium text-gray-600">Despesas</p>
+                  <p className="text-lg font-bold text-red-600">
+                    {new Intl.NumberFormat('pt-BR', {
+                      style: 'currency',
+                      currency: 'BRL',
+                      notation: 'compact'
+                    }).format(stats.totalExpenses)}
+                  </p>
+                </div>
+                <DollarSign className="h-6 w-6 text-red-600" />
               </div>
             </CardContent>
           </Card>
@@ -170,10 +303,13 @@ const ProtocolApp = () => {
           <CardHeader className="border-b">
             <div className="flex justify-between items-center">
               <CardTitle className="text-2xl font-bold text-gray-800">
-                Gerenciamento de Protocolos
+                Gerenciamento do Sistema
               </CardTitle>
               <Button 
-                onClick={() => setShowForm(true)}
+                onClick={() => {
+                  setEditingProtocol(null);
+                  setShowForm(true);
+                }}
                 className="bg-blue-600 hover:bg-blue-700 text-white"
               >
                 <Plus className="h-4 w-4 mr-2" />
@@ -184,7 +320,7 @@ const ProtocolApp = () => {
           
           <CardContent className="p-6">
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid w-full grid-cols-3">
+              <TabsList className="grid w-full grid-cols-7">
                 <TabsTrigger value="list" className="flex items-center gap-2">
                   <FileText className="h-4 w-4" />
                   Protocolos
@@ -193,16 +329,35 @@ const ProtocolApp = () => {
                   <Settings className="h-4 w-4" />
                   Produtos
                 </TabsTrigger>
+                <TabsTrigger value="drivers" className="flex items-center gap-2">
+                  <User className="h-4 w-4" />
+                  Motoristas
+                </TabsTrigger>
+                <TabsTrigger value="vehicles" className="flex items-center gap-2">
+                  <Truck className="h-4 w-4" />
+                  Veículos
+                </TabsTrigger>
+                <TabsTrigger value="expenses" className="flex items-center gap-2">
+                  <DollarSign className="h-4 w-4" />
+                  Despesas
+                </TabsTrigger>
                 <TabsTrigger value="reports" className="flex items-center gap-2">
                   <BarChart3 className="h-4 w-4" />
                   Relatórios
+                </TabsTrigger>
+                <TabsTrigger value="expense-reports" className="flex items-center gap-2">
+                  <DollarSign className="h-4 w-4" />
+                  Rel. Despesas
                 </TabsTrigger>
               </TabsList>
               
               <TabsContent value="list" className="mt-6">
                 <ProtocolList 
                   protocols={protocols}
+                  drivers={drivers}
+                  vehicles={vehicles}
                   onDelete={handleDeleteProtocol}
+                  onEdit={handleEditProtocol}
                 />
               </TabsContent>
               
@@ -212,11 +367,44 @@ const ProtocolApp = () => {
                   onProductsChange={saveProducts}
                 />
               </TabsContent>
+
+              <TabsContent value="drivers" className="mt-6">
+                <DriverManager 
+                  drivers={drivers}
+                  vehicles={vehicles}
+                  onDriversChange={saveDrivers}
+                />
+              </TabsContent>
+
+              <TabsContent value="vehicles" className="mt-6">
+                <VehicleManager 
+                  vehicles={vehicles}
+                  onVehiclesChange={saveVehicles}
+                />
+              </TabsContent>
+
+              <TabsContent value="expenses" className="mt-6">
+                <ExpenseManager 
+                  expenses={expenses}
+                  categories={expenseCategories}
+                  onExpensesChange={saveExpenses}
+                  onCategoriesChange={saveExpenseCategories}
+                />
+              </TabsContent>
               
               <TabsContent value="reports" className="mt-6">
                 <ReportGenerator 
                   protocols={protocols}
                   products={products}
+                  drivers={drivers}
+                  vehicles={vehicles}
+                />
+              </TabsContent>
+
+              <TabsContent value="expense-reports" className="mt-6">
+                <ExpenseReport 
+                  expenses={expenses}
+                  categories={expenseCategories}
                 />
               </TabsContent>
             </Tabs>
@@ -229,8 +417,14 @@ const ProtocolApp = () => {
             <div className="bg-white rounded-lg shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
               <ProtocolForm
                 products={products}
-                onSubmit={handleCreateProtocol}
-                onCancel={() => setShowForm(false)}
+                drivers={drivers}
+                vehicles={vehicles}
+                onSubmit={editingProtocol ? handleUpdateProtocol : handleCreateProtocol}
+                onCancel={() => {
+                  setShowForm(false);
+                  setEditingProtocol(null);
+                }}
+                editingProtocol={editingProtocol}
               />
             </div>
           </div>

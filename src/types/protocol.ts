@@ -8,6 +8,40 @@ export interface Product {
   createdAt: Date;
 }
 
+export interface Driver {
+  id: string;
+  name: string;
+  mainVehicleId: string;
+  createdAt: Date;
+}
+
+export interface Vehicle {
+  id: string;
+  name: string;
+  model: string;
+  plate: string;
+  fuelTankCapacity: number;
+  transportCapacity: number;
+  createdAt: Date;
+}
+
+export interface ExpenseCategory {
+  id: string;
+  name: string;
+  description?: string;
+  createdAt: Date;
+}
+
+export interface Expense {
+  id: string;
+  name: string;
+  value: number;
+  categoryId: string;
+  date: Date;
+  notes?: string;
+  createdAt: Date;
+}
+
 export interface DeliveryProtocol {
   id: string;
   clientName: string;
@@ -20,6 +54,8 @@ export interface DeliveryProtocol {
   deliveryValue: number;
   deliveryDate: Date;
   deliveryTime: string;
+  driverId: string;
+  vehicleId: string;
   signature: string;
   photos: string[];
   notes?: string;
@@ -33,4 +69,12 @@ export interface ReportFilters {
   clientName?: string;
   status?: string;
   productId?: string;
+  driverId?: string;
+  vehicleId?: string;
+}
+
+export interface ExpenseFilters {
+  startDate?: Date;
+  endDate?: Date;
+  categoryId?: string;
 }
