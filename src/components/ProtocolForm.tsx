@@ -7,21 +7,23 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { X, Save, PenTool, Camera } from 'lucide-react';
-import { DeliveryProtocol } from '@/types/protocol';
+import { DeliveryProtocol, Product } from '@/types/protocol';
 import SignatureCapture from './SignatureCapture';
 import PhotoUpload from './PhotoUpload';
 
 interface ProtocolFormProps {
+  products: Product[];
   onSubmit: (protocol: Omit<DeliveryProtocol, 'id' | 'createdAt'>) => void;
   onCancel: () => void;
 }
 
-const ProtocolForm: React.FC<ProtocolFormProps> = ({ onSubmit, onCancel }) => {
+const ProtocolForm: React.FC<ProtocolFormProps> = ({ products, onSubmit, onCancel }) => {
   const [formData, setFormData] = useState({
     clientName: '',
     clientDocument: '',
     clientPhone: '',
     address: '',
+    productId: '',
     productDescription: '',
     quantity: 1,
     deliveryValue: 0,
@@ -54,6 +56,25 @@ const ProtocolForm: React.FC<ProtocolFormProps> = ({ onSubmit, onCancel }) => {
 
   const handleInputChange = (field: string, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleProductSelect = (productId: string) => {
+    const selectedProduct = products.find(p => p.id === productId);
+    if (selectedProduct) {
+      setFormData(prev => ({
+        ...prev,
+        productId,
+        productDescription: selectedProduct.description,
+        deliveryValue: selectedProduct.defaultValue
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        productId: '',
+        productDescription: '',
+        deliveryValue: 0
+      }));
+    }
   };
 
   return (
@@ -119,7 +140,24 @@ const ProtocolForm: React.FC<ProtocolFormProps> = ({ onSubmit, onCancel }) => {
           <div className="bg-blue-50 p-4 rounded-lg">
             <h3 className="text-lg font-semibold mb-4 text-gray-700">Informações da Entrega</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="md:col-span-2">
+              <div>
+                <Label htmlFor="product">Produto *</Label>
+                <Select value={formData.productId} onValueChange={handleProductSelect}>
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Selecione um produto" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {products.map(product => (
+                      <SelectItem key={product.id} value={product.id}>
+                        {product.name}
+                      </SelectItem>
+                    ))}
+                    <SelectItem value="custom">Produto customizado</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="md:col-span-1">
                 <Label htmlFor="productDescription">Descrição do Produto *</Label>
                 <Textarea
                   id="productDescription"
@@ -127,9 +165,11 @@ const ProtocolForm: React.FC<ProtocolFormProps> = ({ onSubmit, onCancel }) => {
                   onChange={(e) => handleInputChange('productDescription', e.target.value)}
                   required
                   className="mt-1"
-                  rows={3}
+                  rows={2}
+                  disabled={formData.productId && formData.productId !== 'custom'}
                 />
               </div>
+              
               <div>
                 <Label htmlFor="quantity">Quantidade</Label>
                 <Input

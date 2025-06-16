@@ -3,19 +3,22 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Package, FileText, BarChart3, Plus } from 'lucide-react';
-import { DeliveryProtocol } from '@/types/protocol';
+import { Package, FileText, BarChart3, Plus, Settings } from 'lucide-react';
+import { DeliveryProtocol, Product } from '@/types/protocol';
 import ProtocolForm from './ProtocolForm';
 import ProtocolList from './ProtocolList';
 import ReportGenerator from './ReportGenerator';
+import ProductManager from './ProductManager';
 import { toast } from '@/hooks/use-toast';
 
 const ProtocolApp = () => {
   const [protocols, setProtocols] = useState<DeliveryProtocol[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [activeTab, setActiveTab] = useState('list');
   const [showForm, setShowForm] = useState(false);
 
   useEffect(() => {
+    // Load protocols
     const savedProtocols = localStorage.getItem('deliveryProtocols');
     if (savedProtocols) {
       const parsed = JSON.parse(savedProtocols);
@@ -25,11 +28,26 @@ const ProtocolApp = () => {
         createdAt: new Date(p.createdAt)
       })));
     }
+
+    // Load products
+    const savedProducts = localStorage.getItem('products');
+    if (savedProducts) {
+      const parsed = JSON.parse(savedProducts);
+      setProducts(parsed.map((p: any) => ({
+        ...p,
+        createdAt: new Date(p.createdAt)
+      })));
+    }
   }, []);
 
   const saveProtocols = (newProtocols: DeliveryProtocol[]) => {
     localStorage.setItem('deliveryProtocols', JSON.stringify(newProtocols));
     setProtocols(newProtocols);
+  };
+
+  const saveProducts = (newProducts: Product[]) => {
+    localStorage.setItem('products', JSON.stringify(newProducts));
+    setProducts(newProducts);
   };
 
   const handleCreateProtocol = (protocol: Omit<DeliveryProtocol, 'id' | 'createdAt'>) => {
@@ -62,6 +80,7 @@ const ProtocolApp = () => {
     delivered: protocols.filter(p => p.status === 'delivered').length,
     pending: protocols.filter(p => p.status === 'pending').length,
     failed: protocols.filter(p => p.status === 'failed').length,
+    totalProducts: products.length,
   };
 
   return (
@@ -78,7 +97,7 @@ const ProtocolApp = () => {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
           <Card className="bg-white shadow-lg hover:shadow-xl transition-shadow">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
@@ -132,6 +151,18 @@ const ProtocolApp = () => {
               </div>
             </CardContent>
           </Card>
+          
+          <Card className="bg-white shadow-lg hover:shadow-xl transition-shadow">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Produtos</p>
+                  <p className="text-3xl font-bold text-purple-600">{stats.totalProducts}</p>
+                </div>
+                <Settings className="h-8 w-8 text-purple-600" />
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Main Content */}
@@ -153,10 +184,14 @@ const ProtocolApp = () => {
           
           <CardContent className="p-6">
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid w-full grid-cols-2">
+              <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="list" className="flex items-center gap-2">
                   <FileText className="h-4 w-4" />
                   Protocolos
+                </TabsTrigger>
+                <TabsTrigger value="products" className="flex items-center gap-2">
+                  <Settings className="h-4 w-4" />
+                  Produtos
                 </TabsTrigger>
                 <TabsTrigger value="reports" className="flex items-center gap-2">
                   <BarChart3 className="h-4 w-4" />
@@ -171,8 +206,18 @@ const ProtocolApp = () => {
                 />
               </TabsContent>
               
+              <TabsContent value="products" className="mt-6">
+                <ProductManager 
+                  products={products}
+                  onProductsChange={saveProducts}
+                />
+              </TabsContent>
+              
               <TabsContent value="reports" className="mt-6">
-                <ReportGenerator protocols={protocols} />
+                <ReportGenerator 
+                  protocols={protocols}
+                  products={products}
+                />
               </TabsContent>
             </Tabs>
           </CardContent>
@@ -183,6 +228,7 @@ const ProtocolApp = () => {
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
             <div className="bg-white rounded-lg shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
               <ProtocolForm
+                products={products}
                 onSubmit={handleCreateProtocol}
                 onCancel={() => setShowForm(false)}
               />

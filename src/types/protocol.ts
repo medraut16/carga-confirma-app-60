@@ -1,10 +1,20 @@
 
+export interface Product {
+  id: string;
+  name: string;
+  description: string;
+  category: string;
+  defaultValue: number;
+  createdAt: Date;
+}
+
 export interface DeliveryProtocol {
   id: string;
   clientName: string;
   clientDocument: string;
   clientPhone: string;
   address: string;
+  productId: string;
   productDescription: string;
   quantity: number;
   deliveryValue: number;
@@ -22,4 +32,5 @@ export interface ReportFilters {
   endDate?: Date;
   clientName?: string;
   status?: string;
+  productId?: string;
 }

@@ -6,14 +6,15 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Download, FileText, Calendar, DollarSign, Package, TrendingUp } from 'lucide-react';
-import { DeliveryProtocol, ReportFilters } from '@/types/protocol';
+import { Download, FileText, Calendar, DollarSign, Package, TrendingUp, BarChart3 } from 'lucide-react';
+import { DeliveryProtocol, ReportFilters, Product } from '@/types/protocol';
 
 interface ReportGeneratorProps {
   protocols: DeliveryProtocol[];
+  products: Product[];
 }
 
-const ReportGenerator: React.FC<ReportGeneratorProps> = ({ protocols }) => {
+const ReportGenerator: React.FC<ReportGeneratorProps> = ({ protocols, products }) => {
   const [filters, setFilters] = useState<ReportFilters>({});
   const [showReport, setShowReport] = useState(false);
 
@@ -26,6 +27,7 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({ protocols }) => {
     if (filters.endDate && protocol.deliveryDate > filters.endDate) return false;
     if (filters.clientName && !protocol.clientName.toLowerCase().includes(filters.clientName.toLowerCase())) return false;
     if (filters.status && protocol.status !== filters.status) return false;
+    if (filters.productId && protocol.productId !== filters.productId) return false;
     return true;
   });
 
@@ -50,6 +52,11 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({ protocols }) => {
     return statusConfig[status as keyof typeof statusConfig] || statusConfig.pending;
   };
 
+  const getProductName = (productId: string) => {
+    const product = products.find(p => p.id === productId);
+    return product ? product.name : 'Produto não encontrado';
+  };
+
   const generateReport = () => {
     setShowReport(true);
   };
@@ -57,7 +64,8 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({ protocols }) => {
   const exportReport = () => {
     const reportData = filteredProtocols.map(protocol => ({
       'Cliente': protocol.clientName,
-      'Produto': protocol.productDescription,
+      'Produto': getProductName(protocol.productId),
+      'Descrição': protocol.productDescription,
       'Quantidade': protocol.quantity,
       'Valor': protocol.deliveryValue,
       'Data': formatDate(protocol.deliveryDate),
@@ -79,6 +87,29 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({ protocols }) => {
     link.click();
   };
 
+  // Calculate product summary
+  const productSummary = filteredProtocols.reduce((acc, protocol) => {
+    const productName = getProductName(protocol.productId);
+    if (!acc[productName]) {
+      acc[productName] = {
+        quantity: 0,
+        totalValue: 0,
+        deliveredCount: 0,
+        pendingCount: 0,
+        failedCount: 0
+      };
+    }
+    
+    acc[productName].quantity += protocol.quantity;
+    acc[productName].totalValue += protocol.deliveryValue;
+    
+    if (protocol.status === 'delivered') acc[productName].deliveredCount++;
+    else if (protocol.status === 'pending') acc[productName].pendingCount++;
+    else if (protocol.status === 'failed') acc[productName].failedCount++;
+    
+    return acc;
+  }, {} as Record<string, any>);
+
   const totalValue = filteredProtocols.reduce((sum, protocol) => sum + protocol.deliveryValue, 0);
   const totalQuantity = filteredProtocols.reduce((sum, protocol) => sum + protocol.quantity, 0);
   const deliveredCount = filteredProtocols.filter(p => p.status === 'delivered').length;
@@ -96,7 +127,7 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({ protocols }) => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
             <div>
               <Label htmlFor="startDate">Data Inicial</Label>
               <Input
@@ -128,6 +159,23 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({ protocols }) => {
                 onChange={(e) => handleFilterChange('clientName', e.target.value)}
                 className="mt-1"
               />
+            </div>
+            
+            <div>
+              <Label htmlFor="product">Produto</Label>
+              <Select value={filters.productId || 'all'} onValueChange={(value) => handleFilterChange('productId', value === 'all' ? undefined : value)}>
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder="Todos os produtos" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos os produtos</SelectItem>
+                  {products.map(product => (
+                    <SelectItem key={product.id} value={product.id}>
+                      {product.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             
             <div>
@@ -218,6 +266,52 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({ protocols }) => {
             </Card>
           </div>
 
+          {/* Product Summary */}
+          {Object.keys(productSummary).length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <BarChart3 className="h-5 w-5" />
+                  Resumo por Produto
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="overflow-x-auto">
+                  <table className="w-full border-collapse border border-gray-300">
+                    <thead>
+                      <tr className="bg-gray-50">
+                        <th className="border border-gray-300 p-3 text-left">Produto</th>
+                        <th className="border border-gray-300 p-3 text-left">Quantidade</th>
+                        <th className="border border-gray-300 p-3 text-left">Valor Total</th>
+                        <th className="border border-gray-300 p-3 text-left">Entregues</th>
+                        <th className="border border-gray-300 p-3 text-left">Pendentes</th>
+                        <th className="border border-gray-300 p-3 text-left">Falharam</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {Object.entries(productSummary).map(([productName, data]) => (
+                        <tr key={productName} className="hover:bg-gray-50">
+                          <td className="border border-gray-300 p-3 font-medium">{productName}</td>
+                          <td className="border border-gray-300 p-3">{data.quantity}</td>
+                          <td className="border border-gray-300 p-3">{formatCurrency(data.totalValue)}</td>
+                          <td className="border border-gray-300 p-3">
+                            <Badge variant="default">{data.deliveredCount}</Badge>
+                          </td>
+                          <td className="border border-gray-300 p-3">
+                            <Badge variant="secondary">{data.pendingCount}</Badge>
+                          </td>
+                          <td className="border border-gray-300 p-3">
+                            <Badge variant="destructive">{data.failedCount}</Badge>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Status Breakdown */}
           <Card>
             <CardHeader>
@@ -264,7 +358,7 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({ protocols }) => {
                     {filteredProtocols.map((protocol) => (
                       <tr key={protocol.id} className="hover:bg-gray-50">
                         <td className="border border-gray-300 p-2">{protocol.clientName}</td>
-                        <td className="border border-gray-300 p-2">{protocol.productDescription}</td>
+                        <td className="border border-gray-300 p-2">{getProductName(protocol.productId)}</td>
                         <td className="border border-gray-300 p-2">{protocol.quantity}</td>
                         <td className="border border-gray-300 p-2">{formatCurrency(protocol.deliveryValue)}</td>
                         <td className="border border-gray-300 p-2">{formatDate(protocol.deliveryDate)}</td>
