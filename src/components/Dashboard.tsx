@@ -1,0 +1,268 @@
+
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { DeliveryProtocol, Expense, DailyFinancial } from '@/types/protocol';
+import { TrendingUp, TrendingDown, DollarSign, Package, Truck, AlertCircle } from 'lucide-react';
+
+interface DashboardProps {
+  protocols: DeliveryProtocol[];
+  expenses: Expense[];
+}
+
+const Dashboard: React.FC<DashboardProps> = ({ protocols, expenses }) => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+
+  // Calcular dados do dia atual
+  const todayProtocols = protocols.filter(p => {
+    const deliveryDate = new Date(p.deliveryDate);
+    deliveryDate.setHours(0, 0, 0, 0);
+    return deliveryDate.getTime() === today.getTime();
+  });
+
+  const todayExpenses = expenses.filter(e => {
+    const expenseDate = new Date(e.date);
+    expenseDate.setHours(0, 0, 0, 0);
+    return expenseDate.getTime() === today.getTime();
+  });
+
+  const todayRevenue = todayProtocols
+    .filter(p => p.status === 'delivered')
+    .reduce((sum, p) => sum + p.deliveryValue, 0);
+
+  const todayExpenseTotal = todayExpenses.reduce((sum, e) => sum + e.value, 0);
+  const todayProfit = todayRevenue - todayExpenseTotal;
+
+  const scheduledToday = todayProtocols.filter(p => p.status === 'scheduled').length;
+  const deliveredToday = todayProtocols.filter(p => p.status === 'delivered').length;
+
+  // Dados dos últimos 7 dias para comparação
+  const last7Days: DailyFinancial[] = [];
+  for (let i = 6; i >= 0; i--) {
+    const date = new Date(today);
+    date.setDate(date.getDate() - i);
+    
+    const dayProtocols = protocols.filter(p => {
+      const deliveryDate = new Date(p.deliveryDate);
+      deliveryDate.setHours(0, 0, 0, 0);
+      return deliveryDate.getTime() === date.getTime();
+    });
+
+    const dayExpenses = expenses.filter(e => {
+      const expenseDate = new Date(e.date);
+      expenseDate.setHours(0, 0, 0, 0);
+      return expenseDate.getTime() === date.getTime();
+    });
+
+    const revenue = dayProtocols
+      .filter(p => p.status === 'delivered')
+      .reduce((sum, p) => sum + p.deliveryValue, 0);
+    
+    const expenseTotal = dayExpenses.reduce((sum, e) => sum + e.value, 0);
+
+    last7Days.push({
+      date,
+      totalRevenue: revenue,
+      totalExpenses: expenseTotal,
+      profit: revenue - expenseTotal,
+      deliveryCount: dayProtocols.filter(p => p.status === 'delivered').length,
+      expenseCount: dayExpenses.length
+    });
+  }
+
+  const weeklyProfit = last7Days.reduce((sum, day) => sum + day.profit, 0);
+  const avgDailyProfit = weeklyProfit / 7;
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-3xl font-bold text-gray-800 mb-2">Dashboard</h2>
+        <p className="text-gray-600">Visão geral do desempenho financeiro de hoje</p>
+      </div>
+
+      {/* Cards principais */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <Card className={`${todayProfit >= 0 ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Resultado do Dia</p>
+                <p className={`text-2xl font-bold ${todayProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  {new Intl.NumberFormat('pt-BR', {
+                    style: 'currency',
+                    currency: 'BRL'
+                  }).format(todayProfit)}
+                </p>
+                <p className="text-xs text-gray-500 mt-1">
+                  {todayProfit >= 0 ? 'Lucro' : 'Prejuízo'}
+                </p>
+              </div>
+              {todayProfit >= 0 ? (
+                <TrendingUp className="h-8 w-8 text-green-600" />
+              ) : (
+                <TrendingDown className="h-8 w-8 text-red-600" />
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-blue-50 border-blue-200">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Receita do Dia</p>
+                <p className="text-2xl font-bold text-blue-600">
+                  {new Intl.NumberFormat('pt-BR', {
+                    style: 'currency',
+                    currency: 'BRL'
+                  }).format(todayRevenue)}
+                </p>
+                <p className="text-xs text-gray-500 mt-1">
+                  {deliveredToday} entregas realizadas
+                </p>
+              </div>
+              <DollarSign className="h-8 w-8 text-blue-600" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-orange-50 border-orange-200">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Despesas do Dia</p>
+                <p className="text-2xl font-bold text-orange-600">
+                  {new Intl.NumberFormat('pt-BR', {
+                    style: 'currency',
+                    currency: 'BRL'
+                  }).format(todayExpenseTotal)}
+                </p>
+                <p className="text-xs text-gray-500 mt-1">
+                  {todayExpenses.length} lançamentos
+                </p>
+              </div>
+              <AlertCircle className="h-8 w-8 text-orange-600" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-purple-50 border-purple-200">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Entregas Pendentes</p>
+                <p className="text-2xl font-bold text-purple-600">{scheduledToday}</p>
+                <p className="text-xs text-gray-500 mt-1">
+                  programadas para hoje
+                </p>
+              </div>
+              <Package className="h-8 w-8 text-purple-600" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Resumo semanal */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Últimos 7 Dias</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">Lucro Total da Semana</span>
+                <span className={`font-bold ${weeklyProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  {new Intl.NumberFormat('pt-BR', {
+                    style: 'currency',
+                    currency: 'BRL'
+                  }).format(weeklyProfit)}
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-600">Média Diária</span>
+                <span className={`font-bold ${avgDailyProfit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  {new Intl.NumberFormat('pt-BR', {
+                    style: 'currency',
+                    currency: 'BRL'
+                  }).format(avgDailyProfit)}
+                </span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Status das Entregas</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                  <span className="text-sm text-gray-600">Entregues Hoje</span>
+                </div>
+                <span className="font-bold text-green-600">{deliveredToday}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                  <span className="text-sm text-gray-600">Pendentes Hoje</span>
+                </div>
+                <span className="font-bold text-yellow-600">{scheduledToday}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                  <span className="text-sm text-gray-600">Total Programadas</span>
+                </div>
+                <span className="font-bold text-blue-600">{todayProtocols.length}</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Gráfico simples dos últimos 7 dias */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Evolução do Lucro (Últimos 7 Dias)</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="h-64 flex items-end justify-between gap-2">
+            {last7Days.map((day, index) => {
+              const maxProfit = Math.max(...last7Days.map(d => Math.abs(d.profit)));
+              const height = maxProfit > 0 ? (Math.abs(day.profit) / maxProfit) * 200 : 20;
+              const isPositive = day.profit >= 0;
+              
+              return (
+                <div key={index} className="flex-1 flex flex-col items-center">
+                  <div className="text-xs text-gray-500 mb-2">
+                    {new Intl.NumberFormat('pt-BR', {
+                      style: 'currency',
+                      currency: 'BRL',
+                      notation: 'compact'
+                    }).format(day.profit)}
+                  </div>
+                  <div
+                    className={`w-full rounded-t ${isPositive ? 'bg-green-500' : 'bg-red-500'}`}
+                    style={{ height: `${height}px`, minHeight: '4px' }}
+                  ></div>
+                  <div className="text-xs text-gray-500 mt-1">
+                    {day.date.getDate()}/{day.date.getMonth() + 1}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
+export default Dashboard;

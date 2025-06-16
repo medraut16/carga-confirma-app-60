@@ -56,10 +56,12 @@ export interface DeliveryProtocol {
   deliveryTime: string;
   driverId: string;
   vehicleId: string;
-  signature: string;
+  signature?: string;
   photos: string[];
   notes?: string;
-  status: 'pending' | 'delivered' | 'failed';
+  status: 'scheduled' | 'delivered';
+  actualDeliveryDate?: Date;
+  actualDeliveryTime?: string;
   createdAt: Date;
 }
 
@@ -77,4 +79,13 @@ export interface ExpenseFilters {
   startDate?: Date;
   endDate?: Date;
   categoryId?: string;
+}
+
+export interface DailyFinancial {
+  date: Date;
+  totalRevenue: number;
+  totalExpenses: number;
+  profit: number;
+  deliveryCount: number;
+  expenseCount: number;
 }
