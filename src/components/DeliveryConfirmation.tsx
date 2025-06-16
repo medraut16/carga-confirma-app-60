@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { X, Save, Camera, FileText } from 'lucide-react';
+import { X, Save } from 'lucide-react';
 import { DeliveryProtocol } from '@/types/protocol';
 import { toast } from '@/hooks/use-toast';
 import SignatureCapture from './SignatureCapture';
@@ -92,9 +92,15 @@ const DeliveryConfirmation: React.FC<DeliveryConfirmationProps> = ({
                   <span className="text-gray-600">Endereço:</span>
                   <p className="font-medium">{protocol.address}</p>
                 </div>
-                <div>
-                  <span className="text-gray-600">Produto:</span>
-                  <p className="font-medium">{protocol.productDescription}</p>
+                <div className="col-span-2">
+                  <span className="text-gray-600">Produtos:</span>
+                  <div className="space-y-1 mt-1">
+                    {protocol.products.map((product, index) => (
+                      <p key={index} className="font-medium">
+                        {product.quantity}x {product.productName}
+                      </p>
+                    ))}
+                  </div>
                 </div>
                 <div>
                   <span className="text-gray-600">Valor:</span>
@@ -147,10 +153,11 @@ const DeliveryConfirmation: React.FC<DeliveryConfirmationProps> = ({
                 <Label>Assinatura do Cliente *</Label>
                 <div className="mt-2">
                   <SignatureCapture
-                    onSignatureChange={(signature) => 
+                    onSave={(signature) => 
                       setFormData(prev => ({ ...prev, signature }))
                     }
-                    existingSignature={formData.signature}
+                    onCancel={() => {}}
+                    initialSignature={formData.signature}
                   />
                 </div>
               </div>
@@ -160,10 +167,11 @@ const DeliveryConfirmation: React.FC<DeliveryConfirmationProps> = ({
                 <Label>Fotos da Entrega (Opcional)</Label>
                 <div className="mt-2">
                   <PhotoUpload
+                    photos={formData.photos}
                     onPhotosChange={(photos) => 
                       setFormData(prev => ({ ...prev, photos }))
                     }
-                    existingPhotos={formData.photos}
+                    onClose={() => {}}
                   />
                 </div>
               </div>

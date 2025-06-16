@@ -15,6 +15,14 @@ export interface Driver {
   createdAt: Date;
 }
 
+export interface VehicleCompartment {
+  id: string;
+  name: string;
+  capacity: number; // em litros
+  currentProduct?: string; // ID do produto atualmente armazenado
+  currentQuantity?: number; // quantidade atual armazenada
+}
+
 export interface Vehicle {
   id: string;
   name: string;
@@ -22,6 +30,7 @@ export interface Vehicle {
   plate: string;
   fuelTankCapacity: number;
   transportCapacity: number;
+  compartments: VehicleCompartment[];
   createdAt: Date;
 }
 
@@ -42,16 +51,22 @@ export interface Expense {
   createdAt: Date;
 }
 
+export interface DeliveryProduct {
+  productId: string;
+  productName: string;
+  productDescription: string;
+  quantity: number;
+  compartmentId?: string; // compartimento onde está armazenado
+}
+
 export interface DeliveryProtocol {
   id: string;
   clientName: string;
   clientDocument: string;
   clientPhone: string;
   address: string;
-  productId: string;
-  productDescription: string;
-  quantity: number;
-  deliveryValue: number;
+  products: DeliveryProduct[]; // array de produtos
+  deliveryValue: number; // valor único para toda a entrega
   deliveryDate: Date;
   deliveryTime: string;
   driverId: string;
