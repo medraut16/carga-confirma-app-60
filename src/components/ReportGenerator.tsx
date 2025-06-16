@@ -132,12 +132,12 @@ const ReportGenerator: React.FC<ReportGeneratorProps> = ({ protocols }) => {
             
             <div>
               <Label htmlFor="status">Status</Label>
-              <Select value={filters.status || ''} onValueChange={(value) => handleFilterChange('status', value || undefined)}>
+              <Select value={filters.status || 'all'} onValueChange={(value) => handleFilterChange('status', value === 'all' ? undefined : value)}>
                 <SelectTrigger className="mt-1">
                   <SelectValue placeholder="Todos os status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos os status</SelectItem>
+                  <SelectItem value="all">Todos os status</SelectItem>
                   <SelectItem value="pending">Pendente</SelectItem>
                   <SelectItem value="delivered">Entregue</SelectItem>
                   <SelectItem value="failed">Falhou</SelectItem>
